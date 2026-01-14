@@ -89,7 +89,7 @@ function App() {
 
   const fetchUnidades = async () => {
     try {
-      const response = await fetch(`${API_URL}/unidades`);
+      const response = await fetch(`${API_URL}/api/unidades`);
       const data = await response.json();
       setUnidades(data);
     } catch (error) {
@@ -99,7 +99,7 @@ function App() {
 
   const fetchProductos = async () => {
     try {
-      const response = await fetch(`${API_URL}/productos`);
+      const response = await fetch(`${API_URL}/api/productos`);
       const data = await response.json();
       setProductos(data);
     } catch (error) {
@@ -109,7 +109,7 @@ function App() {
 
   const fetchHistorial = async () => {
     try {
-      const response = await fetch(`${API_URL}/unidades/historial`);
+      const response = await fetch(`${API_URL}/api/unidades/historial`);
       const data = await response.json();
       setHistorialUnidades(data);
     } catch (error) {
@@ -119,7 +119,7 @@ function App() {
 
   const fetchTiposQueso = async () => {
     try {
-      const response = await fetch(`${API_URL}/tipos-queso`);
+      const response = await fetch(`${API_URL}/api/tipos-queso`);
       const data = await response.json();
       setTiposQueso(data);
     } catch (error) {
@@ -175,7 +175,7 @@ function App() {
   // Agregar función para editar unidad
   const handleEditUnidad = async (unidadId: number, nuevasObservaciones: string) => {
     try {
-      const response = await fetch(`${API_URL}/unidades/${unidadId}`, {
+      const response = await fetch(`${API_URL}/api/unidades/${unidadId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ observacionesIngreso: nuevasObservaciones }),
@@ -265,7 +265,7 @@ function App() {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/unidades`, {
+      const response = await fetch(`${API_URL}/api/unidades`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -314,7 +314,7 @@ function App() {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/unidades/${unidadParaCortar.id}/particiones`, {
+      const response = await fetch(`${API_URL}/api/unidades/${unidadParaCortar.id}/particiones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
