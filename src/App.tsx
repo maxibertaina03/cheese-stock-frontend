@@ -35,7 +35,59 @@ interface Unidad {
   observacionesIngreso: string | null;
 }
 
+
+
+  const Login = ({ onLogin }: { onLogin: (user: { token: string; rol: 'admin' | 'usuario' }) => void }) => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleLogin = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          onLogin({ token: data.token, rol: data.rol });
+        } else {
+          alert('Credenciales inválidas');
+        }
+      } catch (err) {
+        alert('Error de conexión');
+      }
+    };
+
+    return (
+      <div style={{ maxWidth: 400, margin: '100px auto', padding: '2rem', border: '1px solid #ccc', borderRadius: 8 }}>
+        <h2>Iniciar sesión</h2>
+        <input
+          type="text"
+          placeholder="Usuario"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          style={{ width: '100%', marginBottom: '1rem', padding: '0.5rem' }}
+        />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ width: '100%', marginBottom: '1rem', padding: '0.5rem' }}
+        />
+        <button onClick={handleLogin} style={{ width: '100%', padding: '0.5rem' }}>
+          Entrar
+        </button>
+      </div>
+    );
+  };
+
 function App() {
+  const [user, setUser] = useState<{ token: string; rol: 'admin' | 'usuario' } | null>(null);
+  
+  
   const [unidades, setUnidades] = useState<Unidad[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [tiposQueso, setTiposQueso] = useState<TipoQueso[]>([]);
@@ -74,7 +126,6 @@ function App() {
   const [tipoQuesoFiltro, setTipoQuesoFiltro] = useState<string>('todos');
   const [precios, setPrecios] = useState<Record<number, number>>({}); // productoId -> precio
   
-  
   useEffect(() => {
     fetchData();
   }, []);
@@ -89,7 +140,7 @@ function App() {
 
   const fetchUnidades = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/unidades`);
+      const response = await apiFetch(`${API_URL}/api/unidades`);
       const data = await response.json();
       setUnidades(data);
     } catch (error) {
@@ -99,7 +150,7 @@ function App() {
 
   const fetchProductos = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/productos`);
+      const response = await apiFetch(`${API_URL}/api/productos`);
       const data = await response.json();
       setProductos(data);
     } catch (error) {
@@ -109,7 +160,7 @@ function App() {
 
   const fetchHistorial = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/unidades/historial`);
+      const response = await apiFetch(`${API_URL}/api/unidades/historial`);
       const data = await response.json();
       setHistorialUnidades(data);
     } catch (error) {
@@ -119,12 +170,25 @@ function App() {
 
   const fetchTiposQueso = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/tipos-queso`);
+      const response = await apiFetch(`${API_URL}/api/tipos-queso`);
       const data = await response.json();
       setTiposQueso(data);
     } catch (error) {
       console.error('Error al cargar tipos de queso:', error);
     }
+  };
+
+  // Helper para hacer fetch con token
+
+  const apiFetch = (url: string, options: RequestInit = {}) => {
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${user?.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
   };
 
   const decodificarBarcode = (barcode: string) => {
@@ -147,7 +211,6 @@ function App() {
       setError(`No se encontró producto con PLU: ${plu}`);
       return null;
     }
-
     return { producto, peso: pesoGramos };
   };
  
@@ -175,9 +238,8 @@ function App() {
   // Agregar función para editar unidad
   const handleEditUnidad = async (unidadId: number, nuevasObservaciones: string) => {
     try {
-      const response = await fetch(`${API_URL}/api/unidades/${unidadId}`, {
+      const response = await apiFetch(`${API_URL}/api/unidades/${unidadId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ observacionesIngreso: nuevasObservaciones }),
       });
 
@@ -265,9 +327,8 @@ function App() {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/api/unidades`, {
+        const response = await apiFetch(`${API_URL}/api/unidades`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productoId: resultado.producto.id,
           pesoInicial: resultado.peso,
@@ -314,9 +375,8 @@ function App() {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/api/unidades/${unidadParaCortar.id}/particiones`, {
+      const response = await apiFetch(`${API_URL}/api/unidades/${unidadParaCortar.id}/particiones`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           peso,
           observacionesCorte: observacionesCorte || 'Corte sin observaciones',
@@ -429,6 +489,7 @@ function App() {
     setShowHistorial(true);
     await fetchHistorial();
   };
+  if (!user) return <Login onLogin={setUser} />;
 
   // Modificar la función renderUnidadCard para el historial
   const renderUnidadCard = (unidad: Unidad, isHistorial = false) => (
