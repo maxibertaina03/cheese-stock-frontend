@@ -126,9 +126,14 @@ function App() {
   const [tipoQuesoFiltro, setTipoQuesoFiltro] = useState<string>('todos');
   const [precios, setPrecios] = useState<Record<number, number>>({}); // productoId -> precio
   
+  const [dataLoaded, setDataLoaded] = useState(false);
+
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user?.token && !dataLoaded) {
+      fetchData();
+      setDataLoaded(true);
+    }
+  }, [user, dataLoaded]);
 
   const fetchData = async () => {
     await Promise.all([
@@ -150,8 +155,10 @@ function App() {
 
   const fetchProductos = async () => {
     try {
+      console.log("Token en fetchProductos:", user?.token); // 👈 esto
       const response = await apiFetch(`${API_URL}/api/productos`);
       const data = await response.json();
+      console.log("Productos recibidos:", data); // 👈 y esto
       setProductos(data);
     } catch (error) {
       console.error('Error al cargar productos:', error);
